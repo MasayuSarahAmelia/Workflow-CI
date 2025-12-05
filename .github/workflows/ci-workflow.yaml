@@ -47,11 +47,12 @@ jobs:
 
     # 8. UPLOAD TO GOOGLE DRIVE (VALID ACTION)
     - name: Upload to Google Drive
-  uses: JorritSalverda/google-drive-upload-action@v1
-  with:
-    credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-    source: ./model
-    destination: myfolder/
+      uses: JorritSalverda/google-drive-upload-action@v1
+      with:
+        credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+        source: ./model
+        destination: myfolder/
+
 
 
     # 9. POST RUN CHECKOUT
