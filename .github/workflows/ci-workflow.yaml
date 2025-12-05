@@ -43,11 +43,15 @@ jobs:
 
     # 8. UPLOAD TO GOOGLE DRIVE
     - name: Upload model to Google Drive
-      uses: FlyAndNotion/googledrive-upload-action@v1.2.0
-      with:
-        credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-        file: mlruns/0/*/artifacts/model/model.pkl
-        parent_folder_id: ${{ secrets.GDRIVE_FOLDER }}
+      uses: jakejarvis/google-drive-upload@v1.3.0
+        with:
+          filename: "mlruns"
+          folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
+        env:
+          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+
 
     # 9. POST RUN CHECKOUT
     - name: Post-run checkout
