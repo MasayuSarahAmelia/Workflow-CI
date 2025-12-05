@@ -26,10 +26,10 @@ jobs:
         python --version
         pip --version
 
-
     # 4. INSTALL DEPENDENCIES
     - name: Install Dependencies
       run: |
+        pip install setuptools
         pip install mlflow==2.15.1
         pip install scikit-learn pandas numpy
 
@@ -38,21 +38,21 @@ jobs:
       run: echo "MLFLOW_TRACKING_URI=sqlite:///mlflow.db" >> $GITHUB_ENV
 
     # 6. RUN MLFLOW PROJECT
-    - name: Run MLflow project
+    - name: Run MLflow Project
       run: mlflow run MLProject -P dataset=heartdisease_preprocessing.csv
 
-    # 7. INSTALL PYTHON DEPENDENCIES (ARTIFACTS OPTIONAL)
-    - name: Install Google Drive uploader deps
-      run: pip install google-auth google-auth-oauthlib
+    # 7. INSTALL PYTHON DEPENDENCIES FOR UPLOAD
+    - name: Install upload dependencies
+      run: pip install google-auth google-auth-oauthlib google-auth-httplib2
 
-    # 8. UPLOAD TO GOOGLE DRIVE
-    - name: Upload model to Google Drive
-      uses: satackey/action-google-drive@v1
+    # 8. UPLOAD TO GOOGLE DRIVE (VALID ACTION)
+    - name: Upload mlruns to Google Drive
+      uses: adityak74/google-drive-upload-action@v1.0.7
       with:
-        filename: "mlruns"              # folder artefak
-        folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
         credentials: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
-
+        file: "mlruns"
+        folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
+        useGzip: false
 
     # 9. POST RUN CHECKOUT
     - name: Post-run checkout
