@@ -39,7 +39,7 @@ jobs:
 
     # 6. RUN MLFLOW PROJECT
     - name: Run MLflow Project
-      run: mlflow run MLProject -P dataset=heartdisease_preprocessing.csv
+      run: mlflow run MLProject -P dataset=heartdisease_preprocessing.csv  --env-manager=local
 
     # 7. INSTALL PYTHON DEPENDENCIES FOR UPLOAD
     - name: Install upload dependencies
