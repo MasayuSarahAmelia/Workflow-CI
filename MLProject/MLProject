@@ -1,0 +1,9 @@
+name: heart_disease_ci
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      dataset: {type: str, default: "heartdisease_preprocessing.csv"}
+    command: "python modelling.py --dataset {dataset}"
