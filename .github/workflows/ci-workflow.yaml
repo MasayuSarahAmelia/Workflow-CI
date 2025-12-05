@@ -1,99 +1,65 @@
-name: CI MLflow Retraining
+name: MLflow CI
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "MLProject/**"
-      - ".github/workflows/workflow.yaml"
 
 jobs:
-  retrain:
-    name: Run MLflow Project Retraining
+  training:
     runs-on: ubuntu-latest
 
     steps:
-      # ---------------------------------------------------------
-      # 1. SET UP JOB
-      # ---------------------------------------------------------
-      - name: START JOB
-        run: echo "🔧 Starting CI Job..."
+    # ---------------- SET UP JOB ----------------
+    - name: Checkout Repo
+      uses: actions/checkout@v3
 
-      # ---------------------------------------------------------
-      # 2. RUN ACTIONS/CHECKOUT@V3
-      # ---------------------------------------------------------
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    # ---------------- PYTHON 3.12.7 ----------------
+    - name: Setup Python 3.12.7
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12.7"
 
-      # ---------------------------------------------------------
-      # 3. SET UP PYTHON 3.12.7
-      # ---------------------------------------------------------
-      - name: Set up Python 3.12.7
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12.7"
+    # ---------------- CHECK ENV ----------------
+    - name: Check Python version
+      run: python --version
 
-      # ---------------------------------------------------------
-      # 4. CHECK ENV
-      # ---------------------------------------------------------
-      - name: Check system environment
-        run: |
-          echo "Python version:"
-          python --version
-          echo "List directory:"
-          ls -R .
+    # ---------------- INSTALL DEPENDENCIES ----------------
+    - name: Install MLflow + dependencies
+      run: |
+        pip install mlflow==2.15.1
+        pip install scikit-learn pandas
 
-      # ---------------------------------------------------------
-      # 5. INSTALL DEPENDENCIES (MLflow + Conda)
-      # ---------------------------------------------------------
-      - name: Install dependencies
-        run: |
-          pip install mlflow==2.10.0
-          pip install pandas scikit-learn google-api-python-client google-auth-httplib2 google-auth-oauthlib
+    # ---------------- FIX pkg_resources ERROR ----------------
+    - name: Install setuptools (pkg_resources fix)
+      run: pip install setuptools
 
-      # ---------------------------------------------------------
-      # 6. SET MLFLOW TRACKING URI
-      # ---------------------------------------------------------
-      - name: Set MLflow tracking URI
-        run: |
-          export MLFLOW_TRACKING_URI="file:./mlruns"
-          echo "MLflow tracking URI set."
+    # ---------------- SET MLFLOW TRACKING URI ----------------
+    - name: Set MLflow tracking URI
+      run: |
+        echo "MLFLOW_TRACKING_URI=sqlite:///mlflow.db" >> $GITHUB_ENV
 
-      # ---------------------------------------------------------
-      # 7. RUN MLFLOW PROJECT
-      # ---------------------------------------------------------
-      - name: Run MLflow Project
-        run: |
-          mlflow run MLProject \
-            -P dataset=heartdisease_preprocessing.csv
+    # ---------------- RUN MLFLOW PROJECT ----------------
+    - name: Run MLflow Project
+      run: |
+        mlflow run MLProject -P dataset=heartdisease_preprocessing.csv
 
-      # ---------------------------------------------------------
-      # 8. INSTALL PYTHON DEPENDENCIES (UPLOAD)
-      # ---------------------------------------------------------
-      - name: Install Python Dependencies
-        run: |
-          pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
-          echo "Upload dependencies installed."
+    # ---------------- INSTALL PYTHON DEPENDENCIES ----------------
+    - name: Prepare artifact
+      run: |
+        mkdir -p artifact_output
+        cp -r mlruns artifact_output/
 
-      # ---------------------------------------------------------
-      # 9. UPLOAD TO GOOGLE DRIVE
-      # ---------------------------------------------------------
-      - name: Upload model artifacts to Google Drive
-        env:
-          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
-        run: |
-          echo "$GDRIVE_CREDENTIALS" > credentials.json
-          python upload_drive.py
+    # ---------------- UPLOAD TO GOOGLE DRIVE ----------------
+    - name: Upload to Google Drive
+      uses: wangyoucao577/googledrive-action@v2
+      with:
+        service_account_key: ${{ secrets.GDRIVE_KEY }}
+        folder_id: ${{ secrets.GDRIVE_FOLDER }}
+        file: "artifact_output"
 
-      # ---------------------------------------------------------
-      # 10. POST RUN ACTIONS/CHECKOUT@V3
-      # ---------------------------------------------------------
-      - name: Post Run Actions/Checkout@v3
-        run: |
-          echo "🧹 Post run cleanup executed."
+    # ---------------- POST RUN CHECKOUT ----------------
+    - name: Final checkout
+      uses: actions/checkout@v3
 
-      # ---------------------------------------------------------
-      # 11. COMPLETE JOB
-      # ---------------------------------------------------------
-      - name: Complete Job
-        run: echo "🎉 CI Job Completed Successfully!"
+    # ---------------- COMPLETE JOB ----------------
+    - name: Job done
+      run: echo "Workflow Completed Successfully!"
