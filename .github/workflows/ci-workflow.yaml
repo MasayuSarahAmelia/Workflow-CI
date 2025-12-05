@@ -46,12 +46,12 @@ jobs:
       run: pip install google-auth google-auth-oauthlib google-auth-httplib2
 
     # 8. UPLOAD TO GOOGLE DRIVE (VALID ACTION)
-    - name: Upload files to Google Drive
-      uses: drive-actions/upload-file@v1
+    - name: Upload model folder to Google Drive
+      uses: willo32/google-drive-upload-action@v1
       with:
-        credentials_json: ${{ secrets.GDRIVE_CREDENTIALS }}
-        file: ./model/my_model.pkl
-        folder_id: <GOOGLE_DRIVE_FOLDER_ID>
+          target: ./model
+          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+          parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
 
 
     # 9. POST RUN CHECKOUT
