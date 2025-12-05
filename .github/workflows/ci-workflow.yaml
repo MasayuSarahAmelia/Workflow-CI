@@ -35,12 +35,12 @@ jobs:
 
       # 5. SET MLFLOW TRACKING URI
       - name: Set MLflow URI
-        run: echo "MLFLOW_TRACKING_URI=sqlite:///mlflow.db" >> $GITHUB_ENV
+        run: echo "MLFLOW_TRACKING_URI=sqlite:///$GITHUB_WORKSPACE/mlflow.db" >> $GITHUB_ENV
 
       # 6. RUN MLFLOW PROJECT
       - name: Run MLFlow Project
         run: |
-          export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+          export MLFLOW_TRACKING_URI=sqlite:///$GITHUB_WORKSPACE/mlflow.db
           mlflow run MLProject -P dataset=heartdisease_preprocessing.csv --env-manager=local
 
       # 7. INSTALL PYTHON DEPENDENCIES FOR UPLOAD
