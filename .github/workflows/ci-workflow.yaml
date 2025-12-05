@@ -46,13 +46,13 @@ jobs:
       run: pip install google-auth google-auth-oauthlib google-auth-httplib2
 
     # 8. UPLOAD TO GOOGLE DRIVE (VALID ACTION)
-    - name: Upload mlruns to Google Drive
-      uses: adityak74/google-drive-upload-action@v1.0.7
-      with:
-        credentials: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
-        file: "mlruns"
-        folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
-        useGzip: false
+    - name: Upload to Google Drive
+  uses: JorritSalverda/google-drive-upload-action@v1
+  with:
+    credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+    source: ./model
+    destination: myfolder/
+
 
     # 9. POST RUN CHECKOUT
     - name: Post-run checkout
