@@ -5,7 +5,7 @@ on:
   push:
     paths:
       - "MLProject/**"
-      - ".github/workflows/train.yml"
+      - ".github/workflows/workflow.yaml"
 
 jobs:
   retrain:
