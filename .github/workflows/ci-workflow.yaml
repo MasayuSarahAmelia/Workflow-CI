@@ -8,58 +8,57 @@ on:
 jobs:
   training:
     runs-on: ubuntu-latest
-
-    steps:
-    # 1. SET UP JOB
-    - name: RUN ACTIONS/CHECKOUT@V3
-      uses: actions/checkout@v3
-
-    # 2. SET UP PYTHON 3.12.7
-    - name: Install Python 3.12.7
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.12.7"
-
-    # 3. CHECK ENV
-    - name: Check environment
-      run: |
-        python --version
-        pip --version
-
-    # 4. INSTALL DEPENDENCIES
-    - name: Install Dependencies
-      run: |
-        pip install setuptools
-        pip install mlflow==2.15.1
-        pip install scikit-learn pandas numpy
-
-    # 5. SET MLFLOW TRACKING URI
-    - name: Set MLflow URI
-      run: echo "MLFLOW_TRACKING_URI=sqlite:///mlflow.db" >> $GITHUB_ENV
-
-    # 6. RUN MLFLOW PROJECT
-    - name: Run MLFlow Project
-    run: |
-      export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
-      mlflow run MLProject -P dataset=heartdisease_preprocessing.csv --env-manager=local
     
-    # 7. INSTALL PYTHON DEPENDENCIES FOR UPLOAD
-    - name: Install upload dependencies
-      run: pip install google-auth google-auth-oauthlib google-auth-httplib2
+    steps:
+      # 1. SET UP JOB
+      - name: RUN ACTIONS/CHECKOUT@V3
+        uses: actions/checkout@v3
 
-    # 8. UPLOAD TO GOOGLE DRIVE (VALID ACTION)
-    - name: Upload model folder to Google Drive
-      uses: willo32/google-drive-upload-action@v1
-      with:
+      # 2. SET UP PYTHON 3.12.7
+      - name: Install Python 3.12.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12.7"
+
+      # 3. CHECK ENV
+      - name: Check environment
+        run: |
+          python --version
+          pip --version
+
+      # 4. INSTALL DEPENDENCIES
+      - name: Install Dependencies
+        run: |
+          pip install setuptools
+          pip install mlflow==2.15.1
+          pip install scikit-learn pandas numpy
+
+      # 5. SET MLFLOW TRACKING URI
+      - name: Set MLflow URI
+        run: echo "MLFLOW_TRACKING_URI=sqlite:///mlflow.db" >> $GITHUB_ENV
+
+      # 6. RUN MLFLOW PROJECT
+      - name: Run MLFlow Project
+        run: |
+          export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+          mlflow run MLProject -P dataset=heartdisease_preprocessing.csv --env-manager=local
+
+      # 7. INSTALL PYTHON DEPENDENCIES FOR UPLOAD
+      - name: Install upload dependencies
+        run: pip install google-auth google-auth-oauthlib google-auth-httplib2
+
+      # 8. UPLOAD TO GOOGLE DRIVE (VALID ACTION)
+      - name: Upload model folder to Google Drive
+        uses: willo32/google-drive-upload-action@v1
+        with:
           target: ./model
           credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
           parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
 
+      # 9. POST RUN CHECKOUT
+      - name: Post-run checkout
+        uses: actions/checkout@v3
 
-    # 9. POST RUN CHECKOUT
-    - name: Post-run checkout
-      uses: actions/checkout@v3
-
-    # 10. COMPLETE JOB
-    - name: COMPLETE JOB
-      run: echo "Pipeline Finished Successfully!"
+      # 10. COMPLETE JOB
+      - name: COMPLETE JOB
+        run: echo "Pipeline Finished Successfully!"
