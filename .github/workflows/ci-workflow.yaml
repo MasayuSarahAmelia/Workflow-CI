@@ -1,6 +1,8 @@
 name: MLflow CI
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -8,58 +10,49 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # ---------------- SET UP JOB ----------------
-    - name: Checkout Repo
+    # 1. SET UP JOB
+    - name: RUN ACTIONS/CHECKOUT@V3
       uses: actions/checkout@v3
 
-    # ---------------- PYTHON 3.12.7 ----------------
-    - name: Setup Python 3.12.7
+    # 2. SET UP PYTHON 3.12.7
+    - name: Install Python 3.12.7
       uses: actions/setup-python@v4
       with:
         python-version: "3.12.7"
 
-    # ---------------- CHECK ENV ----------------
-    - name: Check Python version
+    # 3. CHECK ENV
+    - name: Check environment
       run: python --version
 
-    # ---------------- INSTALL DEPENDENCIES ----------------
-    - name: Install MLflow + dependencies
+    # 4. INSTALL DEPENDENCIES
+    - name: Install MLflow & sklearn
       run: |
-        pip install mlflow==2.15.1
-        pip install scikit-learn pandas
+        pip install mlflow scikit-learn pandas
 
-    # ---------------- FIX pkg_resources ERROR ----------------
-    - name: Install setuptools (pkg_resources fix)
-      run: pip install setuptools
+    # 5. SET MLFLOW TRACKING URI
+    - name: Set MLflow URI
+      run: echo "MLFLOW_TRACKING_URI=sqlite:///mlflow.db" >> $GITHUB_ENV
 
-    # ---------------- SET MLFLOW TRACKING URI ----------------
-    - name: Set MLflow tracking URI
-      run: |
-        echo "MLFLOW_TRACKING_URI=sqlite:///mlflow.db" >> $GITHUB_ENV
+    # 6. RUN MLFLOW PROJECT
+    - name: Run MLflow project
+      run: mlflow run MLProject -P dataset=heartdisease_preprocessing.csv
 
-    # ---------------- RUN MLFLOW PROJECT ----------------
-    - name: Run MLflow Project
-      run: |
-        mlflow run MLProject -P dataset=heartdisease_preprocessing.csv
+    # 7. INSTALL PYTHON DEPENDENCIES (ARTIFACTS OPTIONAL)
+    - name: Install Google Drive uploader deps
+      run: pip install google-auth google-auth-oauthlib
 
-    # ---------------- INSTALL PYTHON DEPENDENCIES ----------------
-    - name: Prepare artifact
-      run: |
-        mkdir -p artifact_output
-        cp -r mlruns artifact_output/
-
-    # ---------------- UPLOAD TO GOOGLE DRIVE ----------------
-    - name: Upload to Google Drive
-      uses: wangyoucao577/googledrive-action@v2
+    # 8. UPLOAD TO GOOGLE DRIVE
+    - name: Upload model to Google Drive
+      uses: FlyAndNotion/googledrive-upload-action@v1.2.0
       with:
-        service_account_key: ${{ secrets.GDRIVE_KEY }}
-        folder_id: ${{ secrets.GDRIVE_FOLDER }}
-        file: "artifact_output"
+        credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+        file: mlruns/0/*/artifacts/model/model.pkl
+        parent_folder_id: ${{ secrets.GDRIVE_FOLDER }}
 
-    # ---------------- POST RUN CHECKOUT ----------------
-    - name: Final checkout
+    # 9. POST RUN CHECKOUT
+    - name: Post-run checkout
       uses: actions/checkout@v3
 
-    # ---------------- COMPLETE JOB ----------------
-    - name: Job done
-      run: echo "Workflow Completed Successfully!"
+    # 10. COMPLETE JOB
+    - name: COMPLETE JOB
+      run: echo "Pipeline Finished Successfully!"
