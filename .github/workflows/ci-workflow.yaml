@@ -22,12 +22,16 @@ jobs:
 
     # 3. CHECK ENV
     - name: Check environment
-      run: python --version
+      run: |
+        python --version
+        pip --version
+
 
     # 4. INSTALL DEPENDENCIES
-    - name: Install MLflow & sklearn
+    - name: Install Dependencies
       run: |
-        pip install mlflow scikit-learn pandas
+        pip install mlflow==2.15.1
+        pip install scikit-learn pandas numpy
 
     # 5. SET MLFLOW TRACKING URI
     - name: Set MLflow URI
@@ -43,14 +47,11 @@ jobs:
 
     # 8. UPLOAD TO GOOGLE DRIVE
     - name: Upload model to Google Drive
-      uses: jakejarvis/google-drive-upload@v1.3.0
-        with:
-          filename: "mlruns"
-          folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
-        env:
-          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
-          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
-          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+      uses: satackey/action-google-drive@v1
+      with:
+        filename: "mlruns"              # folder artefak
+        folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
+        credentials: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
 
 
     # 9. POST RUN CHECKOUT
