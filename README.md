@@ -1,2 +1,2 @@
 # Workflow-CI
-test trigger
+trigger
