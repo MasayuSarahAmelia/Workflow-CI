@@ -38,6 +38,7 @@ jobs:
       run: echo "MLFLOW_TRACKING_URI=sqlite:///mlflow.db" >> $GITHUB_ENV
 
     # 6. RUN MLFLOW PROJECT
+    - name: Run MLFlow Project
     run: |
       export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
       mlflow run MLProject -P dataset=heartdisease_preprocessing.csv --env-manager=local
