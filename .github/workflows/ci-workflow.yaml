@@ -1,34 +1,99 @@
-name: MLflow CI Retraining
+name: CI MLflow Retraining
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    paths:
+      - "MLProject/**"
+      - ".github/workflows/train.yml"
 
 jobs:
-  train:
+  retrain:
+    name: Run MLflow Project Retraining
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # ---------------------------------------------------------
+      # 1. SET UP JOB
+      # ---------------------------------------------------------
+      - name: START JOB
+        run: echo "🔧 Starting CI Job..."
 
-      - name: Setup Python
+      # ---------------------------------------------------------
+      # 2. RUN ACTIONS/CHECKOUT@V3
+      # ---------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # ---------------------------------------------------------
+      # 3. SET UP PYTHON 3.12.7
+      # ---------------------------------------------------------
+      - name: Set up Python 3.12.7
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.12.7"
 
+      # ---------------------------------------------------------
+      # 4. CHECK ENV
+      # ---------------------------------------------------------
+      - name: Check system environment
+        run: |
+          echo "Python version:"
+          python --version
+          echo "List directory:"
+          ls -R .
+
+      # ---------------------------------------------------------
+      # 5. INSTALL DEPENDENCIES (MLflow + Conda)
+      # ---------------------------------------------------------
       - name: Install dependencies
         run: |
-          pip install mlflow scikit-learn pandas numpy matplotlib
+          pip install mlflow==2.10.0
+          pip install pandas scikit-learn google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
+      # ---------------------------------------------------------
+      # 6. SET MLFLOW TRACKING URI
+      # ---------------------------------------------------------
+      - name: Set MLflow tracking URI
+        run: |
+          export MLFLOW_TRACKING_URI="file:./mlruns"
+          echo "MLflow tracking URI set."
+
+      # ---------------------------------------------------------
+      # 7. RUN MLFLOW PROJECT
+      # ---------------------------------------------------------
       - name: Run MLflow Project
         run: |
-          mlflow run .
+          mlflow run MLProject \
+            -P dataset=heartdisease_preprocessing.csv
 
-      - name: Upload model artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: trained-model
-          path: mlruns/
+      # ---------------------------------------------------------
+      # 8. INSTALL PYTHON DEPENDENCIES (UPLOAD)
+      # ---------------------------------------------------------
+      - name: Install Python Dependencies
+        run: |
+          pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+          echo "Upload dependencies installed."
+
+      # ---------------------------------------------------------
+      # 9. UPLOAD TO GOOGLE DRIVE
+      # ---------------------------------------------------------
+      - name: Upload model artifacts to Google Drive
+        env:
+          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
+        run: |
+          echo "$GDRIVE_CREDENTIALS" > credentials.json
+          python upload_drive.py
+
+      # ---------------------------------------------------------
+      # 10. POST RUN ACTIONS/CHECKOUT@V3
+      # ---------------------------------------------------------
+      - name: Post Run Actions/Checkout@v3
+        run: |
+          echo "🧹 Post run cleanup executed."
+
+      # ---------------------------------------------------------
+      # 11. COMPLETE JOB
+      # ---------------------------------------------------------
+      - name: Complete Job
+        run: echo "🎉 CI Job Completed Successfully!"
