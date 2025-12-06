@@ -41,8 +41,11 @@ jobs:
       - name: Run MLFlow Project
         run: |
           export MLFLOW_TRACKING_URI=sqlite:///$GITHUB_WORKSPACE/mlflow.db
-          mlflow run MLProject -P dataset=heartdisease_preprocessing.csv --env-manager=local
-
+          mlflow run MLProject \
+             -P dataset=heartdisease_preprocessing.csv \
+             --env-manager=local \
+             --experiment-name "Heart Disease Prediction"
+            
       # 7. INSTALL PYTHON DEPENDENCIES FOR UPLOAD
       - name: Install upload dependencies
         run: pip install google-auth google-auth-oauthlib google-auth-httplib2
