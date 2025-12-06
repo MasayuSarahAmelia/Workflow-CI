@@ -50,13 +50,12 @@ jobs:
       - name: Install upload dependencies
         run: pip install google-auth google-auth-oauthlib google-auth-httplib2
 
-      # 8. UPLOAD TO GOOGLE DRIVE (VALID ACTION)
-      - name: Upload model folder to Google Drive
-        uses: willo32/google-drive-upload-action@v1
+      # 8. UPLOAD TO Git Hub
+      - name: Upload Model to GitHub Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          target: ./model
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
+          name: model-hasil-training 
+          path: ./model               
 
       # 9. POST RUN CHECKOUT
       - name: Post-run checkout
